@@ -1,7 +1,7 @@
 from os import system
 from datetime import datetime
+# Importaciones para el concesionario
 from concesionario import Concesionario
-from taller import Taller
 from venta import Venta
 from detalle_compra import detalleCompra
 from empleado import Empleado, pedir_datos_empleado
@@ -10,12 +10,18 @@ from clientes import Cliente
 from coche import Coche
 from coche_nuevo import CocheNuevo
 from coche_usado import CocheUsado
+# Importaciones para el taller
+from taller import Taller
 from reparacion import Reparacion
+from reparacion_mecanico import ReparacionMecanico
+
+from datos_prueba import cargar_datos_prueba
 
 class Menu:
     def __init__(self):
         self.concesionario = Concesionario()
         self.taller = Taller()
+        cargar_datos_prueba(self.concesionario, self.taller)
 
 # -------------------------Vendedores-----------------------------------
     #Metodo que obtiene los dato del vendedor, subclase de Empleado; por eso se hace llamado de la funcion pedir_datos_empleado() para solicitar los datos que se necesitan
@@ -435,10 +441,10 @@ class Menu:
         # Obtener DNI del vendedor
         while True:
             try:
-                dni_vendedor = input("Ingrese el DNI del vendedor: ")
+                dni_vendedor = int(input("Ingrese el DNI del vendedor: "))
                 vendedor_encontrado = False
                 for empleado in self.concesionario.empleados:
-                    if str(empleado.dni) == dni_vendedor and isinstance(empleado, Vendedor):
+                    if empleado.dni == dni_vendedor and isinstance(empleado, Vendedor):
                         vendedor_encontrado = True
                         break
                 if not vendedor_encontrado:
@@ -452,10 +458,10 @@ class Menu:
         # Obtener DNI del cliente
         while True:
             try:
-                dni_cliente = input("Ingrese el DNI del cliente: ")
+                dni_cliente = int(input("Ingrese el DNI del cliente: "))
                 cliente_encontrado = False
                 for cliente in self.concesionario.clientes:
-                    if str(cliente.dni) == dni_cliente:
+                    if cliente.dni == dni_cliente:
                         cliente_encontrado = True
                         break
                 if not cliente_encontrado:
@@ -722,7 +728,7 @@ class Menu:
                                             coche.cantidad += detalle.cantidad
 
                                     # Actualizar el vendedor - eliminar la venta de sus ventas realizadas
-                                    vendedor_idx = self.concesionario.buscar_vendedor(venta.dni_vendedor)
+                                    vendedor_idx = self.concesionario.buscar_vendedor(int(venta.dni_vendedor))
                                     if vendedor_idx != -1:
                                         vendedor = self.concesionario.empleados[vendedor_idx]
                                         # Buscar la venta por ID y eliminarla
@@ -1029,6 +1035,34 @@ class Menu:
                 
             input("\nPresione cualquier tecla para continuar...")
 
+    # Metodo para anular una venta
+    def anular_venta(self):
+        system("cls")
+        print("--- Anular Venta ---")
+
+        while True:
+            try:
+                id_venta = int(input("Ingrese el id de la venta: "))
+                if self.concesionario.buscar_venta(id_venta) == -1:
+                    print("Error: No existe venta con ese ID")
+                    continue
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
+            break
+        
+        if self.concesionario.anular_venta(id_venta) == True:
+            print("+++++++++++++++++++++++++++++++++")
+            print("Info: La venta fue anulada correctamente")
+            print("+++++++++++++++++++++++++++++++++")
+
+        else:
+            print("++++++++++++++++++++++++++")
+            print("Error: No se pudo anular la venta")
+            print("++++++++++++++++++++++++++")
+
+        input("\nPresione cualquier tecla para continuar...")
+
 
 # ------------------------------------------Modulo del taler-------------------------------------
     def registrar_reparacion(self):
@@ -1051,23 +1085,25 @@ class Menu:
                 continue
             break
 
-        # Validar fecha de reparación
+        # Validar fecha de registro de la reparación
         while True:
             try:
-                fecha_input = input("Ingrese la fecha de la reparación (DD/MM/AAAA) o presione Enter para usar la fecha actual: ").strip()
+                fecha_input = input("Ingrese la fecha de registro de la reparación (DD/MM/AAAA) o presione Enter para usar la fecha actual: ").strip()
                 if not fecha_input:
                     # Usar fecha actual
-                    fecha = datetime.now().strftime("%d/%m/%Y")
-                    print(f"Usando fecha actual: {fecha}")
+                    fecha_registro = datetime.now().strftime("%d/%m/%Y")
+                    print(f"Usando fecha actual: {fecha_registro}")
                     break
                 else:
                     # Validar formato de fecha
-                    fecha_obj = datetime.strptime(fecha_input, "%d/%m/%Y")
+                    fecha_norm = fecha_input.replace('-', '/').replace('.', '/').strip()
+                    fecha_registro_obj = datetime.strptime(fecha_norm, "%d/%m/%Y")
                     # Verificar que la fecha no sea futura
-                    if fecha_obj > datetime.now():
+                    if fecha_registro_obj > datetime.now():
                         print("Error: La fecha no puede ser futura")
                         continue
-                    fecha = fecha_input
+                    # Guardar la fecha normalizada (DD/MM/AAAA)
+                    fecha_registro = fecha_norm
                     break
             except ValueError:
                 print("Error: Formato de fecha inválido. Use DD/MM/AAAA")
@@ -1081,6 +1117,30 @@ class Menu:
                 print("Error: No existe un cliente registrado con ese DNI")
                 continue
             break
+
+        # Validar fecha de entrada del vehículo
+        while True:
+            try:
+                entrada_input = input("Ingrese la fecha de entrada del vehículo (DD/MM/AAAA) o presione Enter para usar la misma fecha de registro: ").strip()
+                if not entrada_input:
+                    fecha_entrada = fecha_registro
+                    print(f"Usando fecha de registro: {fecha_registro}")
+                    break
+                else:
+                    fecha_norm = entrada_input.replace('-', '/').replace('.', '/').strip()
+                    fecha_entrada_obj = datetime.strptime(fecha_norm, "%d/%m/%Y")
+                    fecha_registro_obj = datetime.strptime(fecha_registro, "%d/%m/%Y")
+                    if fecha_entrada_obj > datetime.now():
+                        print("Error: La fecha de entrada no puede ser futura")
+                        continue
+                    if fecha_entrada_obj > fecha_registro_obj:
+                        print("Error: La fecha de entrada no puede ser posterior a la fecha de registro")
+                        continue
+                    fecha_entrada = fecha_norm
+                    break
+            except ValueError:
+                print("Error: Formato de fecha inválido. Use DD/MM/AAAA")
+                continue
 
         # Validar matrícula del coche
         while True:
@@ -1132,9 +1192,10 @@ class Menu:
         print("RESUMEN DE LA REPARACIÓN".center(60))
         print("="*60)
         print(f"{'ID Reparación:':<20} {id_reparacion}")
-        print(f"{'Fecha:':<20} {fecha}")
+        print(f"{'Fecha:':<20} {fecha_registro}")
         print(f"{'DNI Cliente:':<20} {dni_cliente}")
         print(f"{'Matrícula Coche:':<20} {matricula_coche}")
+        print(f"{'Entrada:':<20} {fecha_entrada}")
         print(f"{'Estado:':<20} {estado}")
         print(f"{'Costo:':<20} ${costoReparacion:,.2f}")
         print("-"*60)
@@ -1147,8 +1208,18 @@ class Menu:
             confirmacion = input("\n¿Desea registrar esta reparación? (s/n): ").lower()
             if confirmacion in ['s', 'si', 'sí']:
                 try:
-                    # Crear objeto reparación
-                    reparacion = Reparacion(id_reparacion, fecha, dni_cliente, matricula_coche, descripcion, estado, costoReparacion)
+                    # Crear objeto reparación (fecha_salida se deja None inicialmente)
+                    reparacion = Reparacion(
+                        id_reparacion=id_reparacion,
+                        fecha_registro=fecha_registro,
+                        dni_cliente=dni_cliente,
+                        matricula_coche=matricula_coche,
+                        descripcion=descripcion,
+                        estado=estado,
+                        costoReparacion=costoReparacion,
+                        fecha_entrada=fecha_entrada,
+                        fecha_salida=None,
+                    )
                     
                     # Registrar la reparación
                     if self.taller.registro_reparacion(reparacion):
@@ -1206,19 +1277,9 @@ class Menu:
         
         # Validar mecánico
         while True:
-            try:
-                dni_mecanico = int(input("Ingrese el DNI del mecánico asignado: "))
-                idx = self.concesionario.buscar_empleado(dni_mecanico)
-                if idx == -1:
-                    print("Error: No existe un empleado con ese DNI")
-                    continue
-                empleado = self.concesionario.empleados[idx]
-                # Verificar que sea mecánico
-                if empleado.puesto.lower() != "mecanico":
-                    print("Error: El empleado no es un mecánico")
-                    continue
-            except ValueError:
-                print("Error: Ingrese un número válido")
+            dni_mecanico = int(input("Ingrese el DNI del mecánico asignado: "))
+            if self.concesionario.buscar_mecanico( dni_mecanico) == -1:
+                print("Error: No existe un empleado con ese DNI")
                 continue
             break
 
@@ -1236,7 +1297,7 @@ class Menu:
         # Horas trabajadas
         while True:
             try:
-                horas_trabajadas = float(input("Ingrese las horas trabajadas: "))
+                horas_trabajadas = int(input("Ingrese las horas trabajadas: "))
                 if horas_trabajadas <= 0:
                     print("Error: Debe ser mayor a 0")
                     continue
@@ -1257,14 +1318,17 @@ class Menu:
                 break
             else:
                 try:
-                    fecha_obj = datetime.strptime(fecha_input, "%d/%m/%Y")
+                    # Acepta separadores '-', '/', '.' y normaliza a '/'
+                    fecha_norm = fecha_input.replace('-', '/').replace('.', '/').strip()
+                    fecha_obj = datetime.strptime(fecha_norm, "%d/%m/%Y")
                     if fecha_obj > datetime.now():
-                        print("Error: No puede ser una fecha futura")
+                        print("Error: La fecha no puede ser futura")
                         continue
-                    fecha_asignacion = fecha_input
+                    # Normalizar salida a DD/MM/AAAA
+                    fecha_asignacion = fecha_obj.strftime("%d/%m/%Y")
                     break
                 except ValueError:
-                    print("Error: Formato inválido, use DD/MM/AAAA")
+                    print("Error: Fecha inválida. Use DD/MM/AAAA (ej.: 27/08/2025)")
                     continue
 
         # Resumen antes de confirmar
@@ -1308,9 +1372,78 @@ class Menu:
 
         input("\nPresione cualquier tecla para continuar...")
 
+    # Metodo para listar las reparaciones
     def listado_reparaciones(self):
         system("cls")
         self.taller.listar_reparaciones()
+        input("\nPresione cualquier tecla para continuar...")
+
+    # Metodo para modificar las reparaciones
+    def modificar_reparacion(self):
+        system("cls")
+        print("--- Modificar Reparación ---")
+
+        while True:
+            try:
+                id_reparacion = int(input("\nIngrese el id de la reparacion: "))
+                if self.taller.buscar_reparacion(id_reparacion) == -1:
+                    print("Error: No existe reparacion con ese ID")
+                    continue
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
+            break
+        
+        if self.taller.modifica_reparacion(id_reparacion) == True:
+            print("+++++++++++++++++++++++++++++++++")
+            print("Info: La reparacion modificado correctamente")
+            print("+++++++++++++++++++++++++++++++++")
+
+        else:
+            print("++++++++++++++++++++++++++")
+            print("Error: No se pudo modificar la reparacion")
+            print("++++++++++++++++++++++++++")
+
+        input("\nPresione cualquier tecla para continuar...")
+
+    # Metodo para anular las reparaciones
+    def anular_reparacion(self):
+        system("cls")
+        print("--- Anular Reparación ---")
+
+        while True:
+            try:
+                id_reparacion = int(input("\nIngrese el id de la reparacion: "))
+                if self.taller.buscar_reparacion(id_reparacion) == -1:
+                    print("Error: No existe reparacion con ese ID")
+                    continue
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
+            break
+        
+        if self.taller.anular_reparacion(id_reparacion) == True:
+            print("+++++++++++++++++++++++++++++++++")
+            print("Info: La reparacion fue anulada correctamente")
+            print("+++++++++++++++++++++++++++++++++")
+
+        else:
+            print("++++++++++++++++++++++++++")
+            print("Error: No se pudo anular la reparacion")
+            print("++++++++++++++++++++++++++")
+
+        input("\nPresione cualquier tecla para continuar...")
+
+    # Metodo para listar solo reparaciones anuladas
+    def listado_reparaciones_anuladas(self):
+        system("cls")
+        self.taller.listar_reparaciones_anuladas()
+        input("\nPresione cualquier tecla para continuar...")
+
+    # Metodo para listar solo reparaciones completadas
+    def listado_reparaciones_completadas(self):
+        system("cls")
+        self.taller.listar_reparaciones_completadas()
         input("\nPresione cualquier tecla para continuar...")
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1433,8 +1566,13 @@ class Menu:
             system("cls")
             print("=== Menú del taller ===")
             print("a. Registrar reparación")
-            print("b.Listar reparaciones")
-            print("c. Volver al menú principal")
+            print("b. Registrar trabajo de mecánico")
+            print("c. Listar reparaciones")
+            print("d. Listar reparaciones anuladas")
+            print("e. Listar reparaciones completadas")
+            print("f. Modificar reparación")
+            print("g. Anular reparación")
+            print("h. Volver al menú principal")
             print("z. Salir del sistema")
             try:
                 opcion = input("\nDigite una opción: ").lower()
@@ -1442,8 +1580,18 @@ class Menu:
                 if opcion == 'a':
                     self.registrar_reparacion()
                 elif opcion == 'b':
-                    self.listado_reparaciones()
+                    self.registrar_reparacion_mecanico()
                 elif opcion == 'c':
+                    self.listado_reparaciones()
+                elif opcion == 'd':
+                    self.listado_reparaciones_anuladas()
+                elif opcion == 'e':
+                    self.listado_reparaciones_completadas()
+                elif opcion == 'f':
+                    self.modificar_reparacion()
+                elif opcion == 'g':
+                    self.anular_reparacion()
+                elif opcion == 'h':
                     break  # Volver al menú principal
                 elif opcion == 'z':
                     print("\n¡Gracias por usar el sistema del taller!")
@@ -1460,3 +1608,5 @@ class Menu:
 if __name__ == '__main__':
     menu = Menu() #Hago una instancia de la clase menu
     menu.mostrar_menu_principal()
+
+cargar_datos_prueba(menu.concesionario, menu.taller)

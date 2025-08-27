@@ -391,6 +391,7 @@ class Concesionario:
             return True
         return False
         
+        
     # Metodo para modificar un coche
     def modifica_coche(self, matricula):
         pos_coche = self.buscar_coche(matricula)
@@ -534,17 +535,22 @@ class Concesionario:
             self.ventas[venta_idx] = venta
             print(f"Venta {venta.id_venta} actualizada en la lista de ventas.")
         
-        # Buscar al vendedor y agregar/actualizar la venta en su lista
+        # Vincular la venta al vendedor SOLO si está confirmada. Si no lo está, aseguramos que no quede asociada.
+        vendedor_vinculado = False
         for empleado in self.empleados:
             if hasattr(empleado, 'ventas_realizadas') and str(empleado.dni) == str(venta.dni_vendedor):
-                # Evitar duplicados si ya estaba registrada
-                if venta not in empleado.ventas_realizadas:
-                    empleado.ventas_realizadas.append(venta)
-                    print(f"Venta {venta.id_venta} registrada en vendedor {empleado.dni}")
+                vendedor_vinculado = True
+                if getattr(venta, 'estado', None) == 'Confirmada':
+                    if venta not in empleado.ventas_realizadas:
+                        empleado.ventas_realizadas.append(venta)
+                        print(f"Venta {venta.id_venta} registrada en vendedor {empleado.dni}")
+                    else:
+                        print(f"Venta {venta.id_venta} ya estaba en el vendedor {empleado.dni}, no se duplicó.")
                 else:
-                    print(f"Venta {venta.id_venta} ya estaba en el vendedor {empleado.dni}, no se duplicó.")
+                    # Asegurar que ventas pendientes/anuladas no queden en el vendedor
+                    empleado.ventas_realizadas = [v for v in empleado.ventas_realizadas if v.id_venta != venta.id_venta]
                 break
-        else:
+        if not vendedor_vinculado:
             print(f"Advertencia: No se encontró un vendedor con DNI {venta.dni_vendedor}")
         
         return True
@@ -580,6 +586,21 @@ class Concesionario:
         else:
             for venta in self.ventas:
                 venta.mostrar_datos()
+
+    def anular_venta(self, id_venta):
+        pos_venta = self.buscar_venta(id_venta)
+        if pos_venta != -1:
+            if self.ventas[pos_venta].id_venta == id_venta:
+                self.ventas[pos_venta].estado = "Anulada"
+                print("Estado de la venta anulada")
+                # Quitar la venta del vendedor si estuviera asociada
+                venta = self.ventas[pos_venta]
+                for empleado in self.empleados:
+                    if hasattr(empleado, 'ventas_realizadas') and str(empleado.dni) == str(venta.dni_vendedor):
+                        empleado.ventas_realizadas = [v for v in empleado.ventas_realizadas if v.id_venta != id_venta]
+                        break
+                return True
+            return False
         
                 
                     
