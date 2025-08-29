@@ -292,10 +292,11 @@ class Menu:
                 if self.concesionario.buscar_coche(matricula) != -1:
                     print("Error: Ya existe un coche con esta matrícula.")
                     input("\nPresione cualquier tecla para continuar...")
-                    return
+                    continue
                 break
             except Exception as e:
                 print(f"Error: {e}")
+                continue
         
         modelo = input("Ingrese el modelo: ").strip()
         marca = input("Ingrese la marca: ").strip()
@@ -361,13 +362,14 @@ class Menu:
 
             input("\nPresione cualquier tecla para continuar...")
             
+    # Metodo para listar coches
     def listado_coches(self):
         system("cls")
         self.concesionario.listar_coches()
         
         input("\nPresione cualquier tecla para continuar...")
 
-# Metodo para modificar un coche
+    # Metodo para modificar un coche
     def modificar_coche(self):
         system("cls")
         while True:
@@ -393,6 +395,7 @@ class Menu:
 
         input("\nPresione cualquier tecla para continuar...")
 
+    # Metodo para eliminar un coche
     def eliminar_coche(self):
         system("cls")
         matricula = input("Ingrese la matrícula del coche que desea eliminar: ")
@@ -407,7 +410,8 @@ class Menu:
 
         input("\nPresione cualquier tecla para continuar...")
 
-# ----------------------Ventas---------------------------------
+# ------------------------------------------Ventas-----------------------------------------------
+    # Metodo para registrar una venta
     def registrar_venta(self):
         system("cls")
         print("--- Registrar una venta ---")
@@ -416,27 +420,14 @@ class Menu:
         while True:
             try:
                 id_venta = int(input("Ingrese el ID de la venta: "))
-                venta_idx = self.concesionario.buscar_venta(id_venta)
-                
-                if venta_idx != -1:
-                    print("\nYa existe una venta con ese ID. ¿Desea modificarla?")
-                    print("1. Sí")
-                    print("2. No")
-                    opcion = int(input("Seleccione una opción: "))
-                    
-                    if opcion == 1:
-                        self.modificar_venta(id_venta)
-                        return
-                    elif opcion == 2:
-                        print("Por favor ingrese un ID de venta diferente.")
-                        continue
-                    else:
-                        print("Opción inválida. Por favor ingrese un número entero válido para el ID.")
-                        continue
-                
+                if self.concesionario.buscar_venta(id_venta) != -1:
+                    print("\nYa existe una venta con ese ID")
+                    input("\nPresione cualquier tecla para continuar...")
+                    continue
                 break
             except ValueError:
                 print("Por favor ingrese un número entero válido para el ID.")
+                continue
         
         # Obtener DNI del vendedor
         while True:
@@ -789,15 +780,10 @@ class Menu:
                 print("Por favor ingrese una opción válida.")
                 
             input("\nPresione cualquier tecla para continuar...")
-
-# Metodo para listar ventas
-    def listar_ventas(self):
-        system("cls")
-        self.concesionario.listar_ventas()
-        input("\nPresione cualquier tecla para continuar...")
         
-# Metodo para agregar vehiculo a la venta
-    def agregar_vehiculo_a_venta(self, venta):
+    # Metodo para realizar modificaciones en el registro de la venta
+    # Metodo para agregar vehiculo a la venta
+    def agregar_vehiculo_a_venta_en_registro(self, venta):
         system("cls")
         print("--- Agregar Vehículo a la Venta ---")
         
@@ -842,7 +828,7 @@ class Menu:
         except ValueError:
             print("Por favor ingrese un número válido.")
             
-    def modificar_cantidad_vehiculo(self, venta):
+    def modificar_cantidad_vehiculo_en_registro(self, venta):
         if not venta.detalles:
             print("No hay vehículos en esta venta para modificar.")
             return
@@ -886,7 +872,7 @@ class Menu:
         except ValueError:
             print("Por favor ingrese un número válido.")
             
-    def eliminar_vehiculo_de_venta(self, venta):
+    def eliminar_vehiculo_de_venta_en_registro(self, venta):
         if not venta.detalles:
             print("No hay vehículos en esta venta para eliminar.")
             return
@@ -911,7 +897,7 @@ class Menu:
         except ValueError:
             print("Por favor ingrese un número válido.")
             
-    def cambiar_forma_pago(self, venta):
+    def cambiar_forma_pago_en_registro(self, venta):
         system("cls")
         print("--- Cambiar Forma de Pago ---")
         print("\nFormas de pago disponibles:")
@@ -936,7 +922,7 @@ class Menu:
         except ValueError:
             print("Por favor ingrese un número válido.")
         
-    def modificar_venta(self, id_venta):
+    def modificar_venta_en_registro(self, id_venta):
         system("cls")
         print("--- Modificar Venta ---")
         
@@ -994,13 +980,13 @@ class Menu:
                 opcion = int(input("\nSeleccione una opción: "))
                 
                 if opcion == 1:  # Agregar vehículo
-                    self.agregar_vehiculo_a_venta(venta_editada)
+                    self.agregar_vehiculo_a_venta_en_registro(venta_editada)
                 elif opcion == 2:  # Modificar cantidad
-                    self.modificar_cantidad_vehiculo(venta_editada)
+                    self.modificar_cantidad_vehiculo_en_registro(venta_editada)
                 elif opcion == 3:  # Eliminar vehículo
-                    self.eliminar_vehiculo_de_venta(venta_editada)
+                    self.eliminar_vehiculo_de_venta_en_registro(venta_editada)
                 elif opcion == 4:  # Cambiar forma de pago
-                    self.cambiar_forma_pago(venta_editada)
+                    self.cambiar_forma_pago_en_registro(venta_editada)
                 elif opcion == 5:  # Guardar cambios
                     if not venta_editada.detalles:
                         print("No se puede guardar una venta sin vehículos.")
@@ -1035,6 +1021,40 @@ class Menu:
                 
             input("\nPresione cualquier tecla para continuar...")
 
+    # Metodo para listar ventas
+    def listar_ventas(self):
+        system("cls")
+        self.concesionario.listar_ventas()
+        input("\nPresione cualquier tecla para continuar...")
+
+    # Metodo para modificar la venta
+    def modificar_venta(self):
+        system("cls")
+        print("--- Modificar Venta ---")
+
+        while True:
+            try:
+                id_venta = int(input("Ingrese el id de la venta: "))
+                if self.concesionario.buscar_venta(id_venta) == -1:
+                    print("Error: No existe venta con ese ID")
+                    continue
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
+            break
+        
+        resultado = self.concesionario.modifica_venta(id_venta)
+        if resultado is True:
+            print("+++++++++++++++++++++++++++++++++")
+            print("Info: La venta fue modificada correctamente")
+            print("+++++++++++++++++++++++++++++++++")
+        elif resultado is False:
+            print("++++++++++++++++++++++++++")
+            print("Error: No se pudo modificar la venta")
+            print("++++++++++++++++++++++++++")
+
+        input("\nPresione cualquier tecla para continuar...")
+
     # Metodo para anular una venta
     def anular_venta(self):
         system("cls")
@@ -1051,7 +1071,7 @@ class Menu:
                 continue
             break
         
-        if self.concesionario.anular_venta(id_venta) == True:
+        if self.concesionario.anula_venta(id_venta) == True:
             print("+++++++++++++++++++++++++++++++++")
             print("Info: La venta fue anulada correctamente")
             print("+++++++++++++++++++++++++++++++++")
@@ -1501,7 +1521,8 @@ class Menu:
             print("\n- - Ventas - -")
             print("p. Registrar venta")
             print("q. Listar ventas")
-            print("r. Modificar venta")            
+            print("r. Modificar venta") 
+            print("s. Anular venta")            
             
             print("\n- - Otros - -")
             print("t. Volver al menú principal")
@@ -1548,6 +1569,9 @@ class Menu:
                     self.listar_ventas()
                 elif opcion == 'r':
                     self.modificar_venta()
+                elif opcion == 's':
+                    self.anular_venta()
+
                 elif opcion == 't':
                     break  # Volver al menú principal
                 elif opcion == 'z':

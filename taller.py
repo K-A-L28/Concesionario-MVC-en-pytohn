@@ -66,39 +66,108 @@ class Taller:
     # Metodo para modificar una reparacion
     def modifica_reparacion(self, id_reparacion):
         pos_reparacion = self.buscar_reparacion(id_reparacion)
-        if pos_reparacion != -1:
-            if self.reparaciones[pos_reparacion].id_reparacion == id_reparacion:
-                try:
-                    print("Seleccione la opcion que quiere modificar?")
-                    print("1. Modificar el estado de la raparación")
-                    print("2. Modificar el costo de la raparación")
+        if pos_reparacion == -1:
+            print("Error: No existe una reparacion con ese ID.")
+            return False
 
-                    opcion = int(input("Ingrese su opcion: "))
+        reparacion = self.reparaciones[pos_reparacion]
 
-                    if opcion == 1:
-                        self.reparaciones[pos_reparacion].estado = "Completado"
-                        # Guardar fecha de salida normalizada (DD/MM/AAAA)
-                        self.reparaciones[pos_reparacion].fecha_salida = datetime.now().strftime("%d/%m/%Y")
-                        print("Estado de la reparación completada")
-                        print("Fecha de salida: ", self.reparaciones[pos_reparacion].fecha_salida)
-                        return True
+        try:
+            while True:
 
-                    elif opcion == 2:
-                        while True:
-                            nuevo_costo = int(input("Ingrese el nuevo costo de la raparación: "))
-                            if nuevo_costo < 0:
-                                print("Error: El costo no puede ser negativo")
-                                continue
-                            break
+                print("Seleccione la opcion que quiere modificar?")
+                print("1. Modificar el estado de la raparación")
+                print("2. Modificar el costo de la raparación")
+
+                opcion = int(input("Ingrese su opcion: "))
+
+                if opcion == 1:
+                    system("cls")
+                    print(f"--- Cambiar estado de la reparacion {reparacion.id_reparacion} ---")
+                    print("\nEstados de la reparacion:")
+                    print("1. Pendiente")
+                    print("2. En curso")
+                    print("3. Completado")
+                    print("4. Cancelar modificación de estado")
+                        
+                    try:
+                        opcion_de_estado = int(input("\nSeleccione el estado para la reparación: "))
+                        if opcion_de_estado == 1:
+                            reparacion.estado = "Pendiente"
+                            print("\nEstado actualizado a: Pendiente")
+                        elif opcion_de_estado == 2:
+                            reparacion.estado = "En curso"
+                            print("\nEstado actualizado a: En curso")
+                        elif opcion_de_estado == 3:
+                            reparacion.estado = "Completado"
+                            print("\nEstado actualizado a: Completado")
+                            reparacion.fecha_salida = datetime.now().strftime("%d/%m/%Y")
+                            print("Fecha de salida: ", reparacion.fecha_salida)
+                        elif opcion_de_estado == 4:
+                            print("Modificación cancelada")
+                            continue
+                        else:
+                            print("Opción no válida. No se realizaron cambios.")
+                            return
+                        
+                        
+                    
+                    except ValueError:
+                        print("Por favor ingrese un número válido.")
+                    
+                    return True
+                elif opcion == 2:
+                    while True:
+                        nuevo_costo = int(input("Ingrese el nuevo costo de la raparación: "))
+                        if nuevo_costo < 0:
+                            print("Error: El costo no puede ser negativo")
+                            continue
+                        break
+                    reparacion.costoReparacion = nuevo_costo
+                    print("Nuevo costo de la reparación: ", reparacion.costoReparacion)
+                    return True
+                else:
+                    return False
+            
+        except ValueError:
+            print("Dato inválido")
+
+    # Metodo para modificar una reparacion
+    # def modifica_reparacion(self, id_reparacion):
+        # pos_reparacion = self.buscar_reparacion(id_reparacion)
+        # if pos_reparacion != -1:
+        #     if self.reparaciones[pos_reparacion].id_reparacion == id_reparacion:
+        #         try:
+        #             print("Seleccione la opcion que quiere modificar?")
+        #             print("1. Modificar el estado de la raparación")
+        #             print("2. Modificar el costo de la raparación")
+
+        #             opcion = int(input("Ingrese su opcion: "))
+
+        #             if opcion == 1:
+        #                 self.reparaciones[pos_reparacion].estado = "Completado"
+        #                 # Guardar fecha de salida normalizada (DD/MM/AAAA)
+        #                 self.reparaciones[pos_reparacion].fecha_salida = datetime.now().strftime("%d/%m/%Y")
+        #                 print("Estado de la reparación completada")
+        #                 print("Fecha de salida: ", self.reparaciones[pos_reparacion].fecha_salida)
+        #                 return True
+
+        #             elif opcion == 2:
+        #                 while True:
+        #                     nuevo_costo = int(input("Ingrese el nuevo costo de la raparación: "))
+        #                     if nuevo_costo < 0:
+        #                         print("Error: El costo no puede ser negativo")
+        #                         continue
+        #                     break
                             
-                        self.reparaciones[pos_reparacion].costoReparacion = nuevo_costo
-                        print("Nuevo costo de la reparación: ", self.reparaciones[pos_reparacion].costoReparacion)
-                        return True
+        #                 self.reparaciones[pos_reparacion].costoReparacion = nuevo_costo
+        #                 print("Nuevo costo de la reparación: ", self.reparaciones[pos_reparacion].costoReparacion)
+        #                 return True
 
-                    else:
-                        return False
-                except ValueError:
-                    print("Dato inválido")
+        #             else:
+        #                 return False
+        #         except ValueError:
+        #             print("Dato inválido")
 
     # Metodo para anular una reparacion
     def anular_reparacion(self, id_reparacion):

@@ -587,16 +587,116 @@ class Concesionario:
             for venta in self.ventas:
                 venta.mostrar_datos()
 
-    def anular_venta(self, id_venta):
+    def modifica_venta(self, id_venta):
+
+        pos_venta = self.buscar_venta(id_venta)
+        if pos_venta == -1:
+            print("Error: No existe una venta con ese ID.")
+            return False
+            
+        venta = self.ventas[pos_venta]
+        
+        try:
+            while True:
+                print("\n--- Menú de Modificación de venta ---")
+                print(f"1. Forma de pago actual: {venta.forma_pago}")
+                print(f"2. Estado actual: {venta.estado}")
+                print("3. Cancelar")
+                
+                
+                opcion = input("\nSeleccione el dato de la venta que desea modificar (1-3): ")
+                # Menu para mostrar las diferentes formas de pago
+                if opcion == "1":
+                    system("cls")
+                    print("--- Cambiar Forma de Pago ---")
+                    print("\nFormas de pago disponibles:")
+                    print("1. Efectivo")
+                    print("2. Tarjeta de crédito")
+                    print("3. Transferencia bancaria")
+                    print("4. Cancelar modificación")
+                    
+                    try:
+                        opcion_de_pago = int(input("\nSeleccione la forma de pago: "))
+                        if opcion_de_pago == 1:
+                            venta.forma_pago = "Efectivo"
+                            print("\nForma de pago actualizada a: Efectivo")
+                        elif opcion_de_pago == 2:
+                            venta.forma_pago = "Tarjeta de crédito"
+                            print("\nForma de pago actualizada a: Tarjeta de crédito")
+                        elif opcion_de_pago == 3:
+                            venta.forma_pago = "Transferencia bancaria"
+                            print("\nForma de pago actualizada a: Transferencia bancaria")
+                        elif opcion_de_pago == 4:
+                            print("Modificación cancelada")
+                            continue
+                        else:
+                            print("Opción no válida. No se realizaron cambios.")
+                            return
+                    except ValueError:
+                        print("Por favor ingrese un número válido.")
+                #Menu para mostrar los diferentes estados de la venta 
+                elif opcion == "2":
+                    system("cls")
+                    print(f"--- Cambiar estado de la venta {venta.id_venta} ---")
+                    print("\nEstados de la venta:")
+                    print("1. Pendiente")
+                    print("2. En curso")
+                    print("3. Completado")
+                    print("4. Cancelar modificación")
+                    
+                    try:
+                        opcion_de_estado = int(input("\nSeleccione el estado para la venta: "))
+                        if opcion_de_estado == 1:
+                            venta.estado = "Pendiente"
+                            print("\nEstado actualizado a: Pendiente")
+                        elif opcion_de_estado == 2:
+                            venta.estado = "En curso"
+                            print("\nEstado actualizado a: En curso")
+                        elif opcion_de_estado == 3:
+                            venta.estado = "Completado"
+                            print("\nEstado actualizado a: Completado")
+                        elif opcion_de_estado == 4:
+                            print("Modificación cancelada")
+                            continue
+                        else:
+                            print("Opción no válida. No se realizaron cambios.")
+                            return
+                    except ValueError:
+                        print("Por favor ingrese un número válido.")
+                        
+                elif opcion == "3":
+                    print("Modificación cancelada")
+                    return
+                else:
+                    print("Opción no válida. Por favor, seleccione una opción del menú.")
+                    
+                input("\nPresione Enter para continuar...")
+                
+        except Exception as e:
+            print(f"Error inesperado: {str(e)}")
+            return False
+
+    def anula_venta(self, id_venta):
         pos_venta = self.buscar_venta(id_venta)
         if pos_venta != -1:
             if self.ventas[pos_venta].id_venta == id_venta:
-                self.ventas[pos_venta].estado = "Anulada"
-                print("Estado de la venta anulada")
-                # Quitar la venta del vendedor si estuviera asociada
                 venta = self.ventas[pos_venta]
+                estado_anterior = venta.estado
+                venta.estado = "Anulada"
+                print("Estado de la venta anulada")
+
+                # Si la venta estaba confirmada, devolver el stock de cada coche involucrado
+                if estado_anterior == "Confirmada":
+                    for detalle in venta.detalles:
+                        idx_coche = self.buscar_coche(detalle.matricula)
+                        if idx_coche != -1:
+                            self.coches[idx_coche].cantidad += detalle.cantidad
+                        else:
+                            print(f"Advertencia: No se encontró el coche con matrícula {detalle.matricula} para restaurar stock")
+
+                # Quitar la venta del vendedor si estuviera asociada
                 for empleado in self.empleados:
-                    if hasattr(empleado, 'ventas_realizadas') and str(empleado.dni) == str(venta.dni_vendedor):
+                    if empleado.ventas_realizadas and empleado.dni == venta.dni_vendedor:
                         empleado.ventas_realizadas = [v for v in empleado.ventas_realizadas if v.id_venta != id_venta]
                         break
                 return True
